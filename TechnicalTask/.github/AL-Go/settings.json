@@ -1,0 +1,30 @@
+{
+  "type": "AppSource App",
+  "country": "us",
+  "appFolders": [
+    "."
+  ],
+  "testFolders": [],
+  "bcContainerHelperVersion": "dev",
+  "useCompilerFolder": false,
+  "doNotSignApps": true,
+  "doNotRunTests": false,
+  "doNotRunBcptTests": false,
+  "doNotPublishApps": false,
+  "installTestRunner": true,
+  "installTestFramework": true,
+  "installTestLibraries": true,
+  "installPerformanceToolkit": false,
+  "enableCodeCop": true,
+  "enableAppSourceCop": true,
+  "enableUICop": true,
+  "enablePerTenantExtensionCop": false,
+  "enableCodeAnalysis": true,
+  "enableSourceControlIntegration": true,
+  "failOn": "error",
+  "cacheImage": true,
+  "build": {
+    "versioningStrategy": 0
+  },
+  "testResultsFormat": "JUnit"
+}
