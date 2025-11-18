@@ -1,0 +1,37 @@
+{
+  "id": "f650f8f9-4482-4938-a257-29d4aa6749ec",
+  "name": "TechnicalTask",
+  "publisher": "Default Publisher",
+  "version": "1.0.0.0",
+  "brief": "A short, concise description of your app for AppSource.",
+  "description": "TechnicalTask is a Business Central extension that demonstrates functionality for the technical task.",
+  "privacyStatement": "https://www.yourcompany.com/privacy",
+  "EULA": "https://www.yourcompany.com/eula",
+  "help": "https://www.yourcompany.com/help",
+  "contextSensitiveHelpUrl": "https://www.yourcompany.com/help/technicaltask",
+  "url": "https://www.yourcompany.com",
+  "logo": "logo.png",
+  "dependencies": [],
+  "screenshots": [
+    "screenshot1.png",
+    "screenshot2.png"
+  ],
+  "platform": "1.0.0.0",
+  "application": "27.0.0.0",
+  "target": "Cloud",
+  "idRanges": [
+    {
+      "from": 1000000,
+      "to": 1000049
+    }
+  ],
+  "resourceExposurePolicy": {
+    "allowDebugging": false,
+    "allowDownloadingSource": false,
+    "includeSourceInSymbolFile": false
+  },
+  "runtime": "16.0",
+  "features": [
+    "TranslationFile"
+  ]
+}
