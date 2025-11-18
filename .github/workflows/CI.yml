@@ -25,10 +25,9 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Run Pipeline
-        uses: microsoft/AL-Go-Actions@v1.0
+      - name: Run CI
+        uses: microsoft/AL-Go-Actions@preview
         with:
           type: ci
-          project: '.'
           shell: pwsh
 
