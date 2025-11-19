@@ -115,7 +115,6 @@ The project includes comprehensive unit tests with:
 ### Prerequisites
 - Microsoft Dynamics 365 Business Central (Cloud)
 - AL Development Environment
-- Business Central AL Extension Development license
 
 ### Installation
 1. Clone this repository
@@ -153,14 +152,6 @@ The project includes comprehensive unit tests with:
 - Implements proper error handling patterns
 - Uses modern AL language features (interfaces, proper data classification)
 - Comprehensive unit test coverage with mocking
-
-## Contributing
-
-When contributing to this project:
-1. Follow AL coding conventions
-2. Include unit tests for new functionality
-3. Update documentation as needed
-4. Ensure all tests pass before submitting
 
 ## CI/CD Pipeline
 
@@ -212,7 +203,3 @@ Pipeline configuration is managed through `.AL-Go/settings.json` with AppSource-
 - **Dependencies**: Managed symbol downloads and version control
 
 For more information about AL-Go and the AppSource template, visit the [AL-Go for GitHub documentation](https://github.com/microsoft/AL-Go).
-
-## License
-
-This project is part of a technical demonstration and follows standard AL extension licensing.
