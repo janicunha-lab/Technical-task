@@ -1,48 +1,10 @@
 {
-  "type": "AppSource App",
+  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go-Actions/v8.0/.Modules/settings.schema.json",
   "country": "us",
+  "appSourceCopMandatoryAffixes": [
+    "<affix>"
+  ],
   "appFolders": ["TechnicalTask"],
   "testFolders": ["TechnicalTask_Tests"],
-  "bcContainerHelperVersion": "dev",
-  "useCompilerFolder": true,
-  "doNotSignApps": true,
-  "doNotPublishApps": false,
-  "updateDependencies": true,
-  "runs-on": "windows-latest",
-  "shell": "pwsh",
-  "tests": {
-    "runTests": true,
-    "runBcptTests": false,
-    "installTestRunner": true,
-    "installTestFramework": true,
-    "installTestLibraries": true,
-    "testResultsFile": "testresults.xml",
-    "testResultsFormat": "JUnit"
-  },
-  "codeAnalysis": {
-    "enableCodeCop": true,
-    "enableAppSourceCop": true,
-    "enableUICop": true,
-    "enablePerTenantExtensionCop": false,
-    "enableCodeAnalysis": true
-  },
-  "build": {
-    "versioningStrategy": 0,
-    "appVersion": null,
-    "appBuild": null,
-    "appRevision": null,
-    "versionPrefix": null,
-    "versionSuffix": null,
-    "buildNumber": null
-  },
-  "appSourceCopMandatoryAffixes": ["TT"],
-  "additionalCountries": [],
-  "secrets": {
-    "keyVaultCertificateUrl": null,
-    "keyVaultCertificatePassword": null,
-    "codeSignCertificateUrl": null,
-    "codeSignCertificatePassword": null,
-    "ghToken": null
-  },
-  "Environments": []
+  "bcptTestFolders": []
 }
