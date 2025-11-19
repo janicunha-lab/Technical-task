@@ -43,13 +43,28 @@ jobs:
         env:
           ENVIRONMENT: ${{ github.event.inputs.environment }}
           DIRECTCOMMIT: ${{ github.event.inputs.directCommit }}
+          BcContainerHelperTelemetryConnectionString: ""
         run: |
           $ErrorActionPreference = "Stop"
+          
+          # Disable telemetry
+          $env:BcContainerHelperTelemetryConnectionString = ""
+          
           Import-Module BcContainerHelper -DisableNameChecking
           
           $baseFolder = $env:GITHUB_WORKSPACE
           $settingsFile = Join-Path $baseFolder ".AL-Go\settings.json"
-          $settings = Get-Content $settingsFile | ConvertFrom-Json
+          $settingsJson = Get-Content $settingsFile -Raw | ConvertFrom-Json
+          
+          # Ensure telemetry properties exist with empty strings
+          if (-not $settingsJson.PSObject.Properties['MicrosoftTelemetryConnectionString']) {
+            $settingsJson | Add-Member -MemberType NoteProperty -Name "MicrosoftTelemetryConnectionString" -Value ""
+          }
+          if (-not $settingsJson.PSObject.Properties['PartnerTelemetryConnectionString']) {
+            $settingsJson | Add-Member -MemberType NoteProperty -Name "PartnerTelemetryConnectionString" -Value ""
+          }
+          
+          $settings = $settingsJson
           
           # Create container
           $containerName = "bcserver"
