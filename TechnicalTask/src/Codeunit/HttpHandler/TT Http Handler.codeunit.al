@@ -2,6 +2,12 @@ codeunit 1000001 "TT Http Handler" implements "TT IHttpClientController"
 {
     Access = Internal;
 
+    var
+        HttpClientErr: Label 'Http request to %1 failed.';
+        EmptyUrlErr: Label 'URL cannot be empty.';
+        EmptyJsonErr: Label 'JSON content cannot be empty.';
+        JsonContentType: Label 'application/json; charset=UTF-8', Locked = true;
+
     procedure Get(Url: Text): Text
     begin
         exit(Get(Url, this));
@@ -10,11 +16,12 @@ codeunit 1000001 "TT Http Handler" implements "TT IHttpClientController"
     procedure Get(Url: Text; Controller: Interface "TT IHttpClientController"): Text
     var
         HttpResponse: HttpResponseMessage;
-        HttpClientError: Label 'Http request to %1 failed.';
         ResponseText: Text;
     begin
+        VerifyEmptyUrl(Url);
+
         if not Controller.Get(Url, HttpResponse) then
-            Error(HttpClientError, Url);
+            Error(HttpClientErr, Url);
 
         if not HttpResponse.IsSuccessStatusCode() then
             HandleHttpError(HttpResponse.HttpStatusCode());
@@ -34,19 +41,23 @@ codeunit 1000001 "TT Http Handler" implements "TT IHttpClientController"
         Headers: HttpHeaders;
         Request: HttpRequestMessage;
         Response: HttpResponseMessage;
-        HttpClientError: Label 'Http request to %1 failed.';
         ResponseText: Text;
     begin
+        VerifyEmptyUrl(Url);
+
+        if JsonText = '' then
+            Error(EmptyJsonErr);
+
         Request.Method('POST');
         Request.SetRequestUri(Url);
         Content.WriteFrom(JsonText);
         Content.GetHeaders(Headers);
         Headers.Clear();
-        Headers.Add('Content-Type', 'application/json; charset=UTF-8');
+        Headers.Add('Content-Type', JsonContentType);
         Request.Content(Content);
 
         if not Controller.Send(Request, Response) then
-            Error(HttpClientError, Url);
+            Error(HttpClientErr, Url);
 
         if not Response.IsSuccessStatusCode() then
             HandleHttpError(Response.HttpStatusCode());
@@ -55,35 +66,53 @@ codeunit 1000001 "TT Http Handler" implements "TT IHttpClientController"
         exit(ResponseText);
     end;
 
+    procedure VerifyEmptyUrl(Url: Text)
+    begin
+        if Url = '' then
+            Error(EmptyUrlErr);
+    end;
+
     procedure HandleHttpError(HttpStatusCode: Integer)
     var
         ErrorMessage: Text;
+        BadRequestErr: Label 'Bad Request (400) – The request could not be understood or was missing required parameters.';
+        UnauthorizedErr: Label 'Unauthorized (401) – Authentication failed or user does not have permissions.';
+        ForbiddenErr: Label 'Forbidden (403) – You do not have permission to access this resource.';
+        NotFoundErr: Label 'Not Found (404) – The requested resource could not be found.';
+        MethodNotAllowedErr: Label 'Method Not Allowed (405) – The HTTP method used is not allowed for this resource.';
+        RequestTimeoutErr: Label 'Request Timeout (408) – The request timed out.';
+        ConflictErr: Label 'Conflict (409) – There was a conflict with the current state of the resource.';
+        InternalServerErr: Label 'Internal Server Error (500) – An error occurred on the server.';
+        BadGatewayErr: Label 'Bad Gateway (502) – Invalid response from the upstream server.';
+        ServiceUnavailableErr: Label 'Service Unavailable (503) – The server is currently unavailable.';
+        GatewayTimeoutErr: Label 'Gateway Timeout (504) – The upstream server timed out.';
+        UnknownHttpErr: Label 'HTTP Error %1 – Unknown error occurred.';
     begin
         case HttpStatusCode of
             400:
-                ErrorMessage := 'Bad Request (400) – The request could not be understood or was missing required parameters.';
+                ErrorMessage := BadRequestErr;
             401:
-                ErrorMessage := 'Unauthorized (401) – Authentication failed or user does not have permissions.';
+                ErrorMessage := UnauthorizedErr;
             403:
-                ErrorMessage := 'Forbidden (403) – You do not have permission to access this resource.';
+                ErrorMessage := ForbiddenErr;
             404:
-                ErrorMessage := 'Not Found (404) – The requested resource could not be found.';
+                ErrorMessage := NotFoundErr;
             405:
-                ErrorMessage := 'Method Not Allowed (405) – The HTTP method used is not allowed for this resource.';
+                ErrorMessage := MethodNotAllowedErr;
             408:
-                ErrorMessage := 'Request Timeout (408) – The request timed out.';
+                ErrorMessage := RequestTimeoutErr;
             409:
-                ErrorMessage := 'Conflict (409) – There was a conflict with the current state of the resource.';
+                ErrorMessage := ConflictErr;
             500:
-                ErrorMessage := 'Internal Server Error (500) – An error occurred on the server.';
+                ErrorMessage := InternalServerErr;
             502:
-                ErrorMessage := 'Bad Gateway (502) – Invalid response from the upstream server.';
+                ErrorMessage := BadGatewayErr;
             503:
-                ErrorMessage := 'Service Unavailable (503) – The server is currently unavailable.';
+                ErrorMessage := ServiceUnavailableErr;
             504:
-                ErrorMessage := 'Gateway Timeout (504) – The upstream server timed out.';
+                ErrorMessage := GatewayTimeoutErr;
             else
-                ErrorMessage := StrSubstNo('HTTP Error %1 – Unknown error occurred.', HttpStatusCode);
+                ErrorMessage := StrSubstNo(UnknownHttpErr, HttpStatusCode);
         end;
 
         Error(ErrorMessage);

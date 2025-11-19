@@ -2,15 +2,21 @@ codeunit 1000000 "TT User Management"
 {
     Access = Internal;
 
+    var
+        JsonParsingErr: Label 'Failed to parse JSON response.';
+        EmptyResponseErr: Label 'Received empty response from server.';
+        UsersApiUrl: Label 'https://jsonplaceholder.typicode.com/users', Locked = true;
+        PostsApiUrl: Label 'https://jsonplaceholder.typicode.com/posts', Locked = true;
+
     procedure GetUsersInfo()
     var
         UserList: Text;
     begin
-        if not GetUserList('https://jsonplaceholder.typicode.com/users', UserList) then
+        if not GetUserList(UsersApiUrl, UserList) then
             exit;
 
         ParseAndStoreUsers(UserList);
-        GetUserPosts();
+        GetAllUserPosts();
         NotifySyncComplete();
     end;
 
@@ -19,7 +25,11 @@ codeunit 1000000 "TT User Management"
         HttpHandler: Codeunit "TT HTTP Handler";
     begin
         ResponseText := HttpHandler.Get(Url);
-        exit(ResponseText <> '');
+        if ResponseText = '' then begin
+            Error(EmptyResponseErr);
+            exit(false);
+        end;
+        exit(true);
     end;
 
     procedure ParseAndStoreUsers(ResponseText: Text)
@@ -30,7 +40,9 @@ codeunit 1000000 "TT User Management"
         JToken: JsonToken;
         UserToken: JsonToken;
     begin
-        UsersArray.ReadFrom(ResponseText);
+        if not UsersArray.ReadFrom(ResponseText) then
+            Error(JsonParsingErr);
+
         foreach UserToken in UsersArray do begin
 
             if not UserToken.AsObject().Get('id', JToken) then
@@ -73,11 +85,11 @@ codeunit 1000000 "TT User Management"
         User.Modify(true);
     end;
 
-    procedure GetUserPosts()
+    procedure GetAllUserPosts()
     var
         UserPosts: Text;
     begin
-        if not GetUserPosts('https://jsonplaceholder.typicode.com/posts', UserPosts) then
+        if not GetUserPosts(PostsApiUrl, UserPosts) then
             exit;
 
         ParseAndStoreUserPosts(UserPosts);
@@ -88,7 +100,11 @@ codeunit 1000000 "TT User Management"
         HttpHandler: Codeunit "TT HTTP Handler";
     begin
         ResponseText := HttpHandler.Get(Url);
-        exit(ResponseText <> '');
+        if ResponseText = '' then begin
+            Error(EmptyResponseErr);
+            exit(false);
+        end;
+        exit(true);
     end;
 
     procedure ParseAndStoreUserPosts(ResponseText: Text)
@@ -99,7 +115,9 @@ codeunit 1000000 "TT User Management"
         JToken: JsonToken;
         PostToken: JsonToken;
     begin
-        PostsArray.ReadFrom(ResponseText);
+        if not PostsArray.ReadFrom(ResponseText) then
+            Error(JsonParsingErr);
+
         foreach PostToken in PostsArray do begin
 
             if not PostToken.AsObject().Get('id', JToken) then
@@ -118,12 +136,11 @@ codeunit 1000000 "TT User Management"
         exit(Post.Get(PostID));
     end;
 
-    procedure InsertPost(PostID: Integer; var Post: Record "TT Post"): Boolean
+    procedure InsertPost(PostID: Integer; var Post: Record "TT Post")
     begin
         Post.Init();
         Post.Validate(ID, PostID);
         Post.Insert(true);
-        exit(true);
     end;
 
     procedure MapPostData(PostToken: JsonToken; var Post: Record "TT Post")
@@ -131,7 +148,7 @@ codeunit 1000000 "TT User Management"
         JToken: JsonToken;
         OutS: OutStream;
     begin
-        if PostToken.AsObject().Get('UserId', JToken) then
+        if PostToken.AsObject().Get('userId', JToken) then
             Post.Validate(UserId, JToken.AsValue().AsInteger());
 
         if PostToken.AsObject().Get('title', JToken) then
@@ -166,10 +183,10 @@ codeunit 1000000 "TT User Management"
 
         Json.Add('title', Title);
         Json.Add('body', Body);
-        Json.Add('UserId', UserId);
+        Json.Add('userId', UserId);
         Json.WriteTo(JsonText);
 
-        ResultText := HttpHandler.Post('https://jsonplaceholder.typicode.com/posts', JsonText);
+        ResultText := HttpHandler.Post(PostsApiUrl, JsonText);
         if ResultText = '' then
             exit(false);
 
@@ -178,15 +195,19 @@ codeunit 1000000 "TT User Management"
     end;
 
     procedure CheckEmptyFields(UserId: Integer; Title: Text; Body: Text)
+    var
+        InvalidUserIdErr: Label 'User ID must be a positive integer.';
+        EmptyTitleErr: Label 'Title cannot be empty.';
+        EmptyBodyErr: Label 'Body cannot be empty.';
     begin
         if UserId <= 0 then
-            Error('User ID must be a positive integer.');
+            Error(InvalidUserIdErr);
 
         if Title = '' then
-            Error('Title cannot be empty.');
+            Error(EmptyTitleErr);
 
         if Body = '' then
-            Error('Body cannot be empty.');
+            Error(EmptyBodyErr);
     end;
 
     procedure GetPostBodyText(Post: Record "TT Post"): Text

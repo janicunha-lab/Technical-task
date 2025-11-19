@@ -203,9 +203,9 @@ codeunit 1000010 "TT User Management Test"
         Initialize();
         PostID := 999888;
 
-        Result := TTUserManagement.InsertPost(PostID, Post);
+        TTUserManagement.InsertPost(PostID, Post);
 
-        Assert.IsTrue(Result, 'InsertPost should return true for successful insertion');
+        Assert.IsTrue(Post.Id = 999888, 'Post should have correct ID');
     end;
     #endregion
 

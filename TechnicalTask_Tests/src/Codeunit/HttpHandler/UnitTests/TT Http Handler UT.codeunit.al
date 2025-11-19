@@ -65,7 +65,7 @@ codeunit 1000011 "TT Http Handler UT"
     begin
         MockClient.SetResponse(true, 201, '{"user":1}');
 
-        Result := HttpHandler.Post('http://test', '', MockClient);
+        Result := HttpHandler.Post('http://test', 'DummyText', MockClient);
 
         Assert.AreEqual(201, MockClient.GetLastStatusCode(), 'HTTP status code should be 201 Created.');
         Assert.AreEqual('{"user":1}', Result, 'Response body should match the expected JSON.');
@@ -80,7 +80,7 @@ codeunit 1000011 "TT Http Handler UT"
     begin
         MockClient.SetResponse(true, 400, '{"error":"invalid"}');
 
-        Result := HttpHandler.Post('http://test', '', MockClient);
+        Result := HttpHandler.Post('http://test', 'DummyText', MockClient);
 
         Assert.AreEqual(400, MockClient.GetLastStatusCode(), 'HTTP status code should be 400 Bad Request.');
         Assert.AreEqual('{"error":"invalid"}', Result, 'Response body should match the expected error JSON.');
