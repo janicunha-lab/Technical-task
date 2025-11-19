@@ -1,4 +1,4 @@
-table 1000000 TTUser
+table 1000000 "TT User"
 {
     DataClassification = CustomerContent;
 
@@ -44,14 +44,4 @@ table 1000000 TTUser
             Clustered = true;
         }
     }
-
-    trigger OnDelete()
-    var
-        Post: Record "TT Post";
-    begin
-        Post.SetRange(UserId, Rec.Id);
-        if not Post.IsEmpty() then
-            Post.DeleteAll();
-    end;
-
 }

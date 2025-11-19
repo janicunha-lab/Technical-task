@@ -53,17 +53,11 @@ page 1000001 "TT Post List"
 
     var
         BodyText: Text;
-        InS: InStream;
 
     trigger OnAfterGetRecord()
+    var
+        TTUserManagement: Codeunit "TT User Management";
     begin
-        BodyText := '';
-
-        if not Rec.Body.HasValue() then
-            exit;
-
-        Rec.CalcFields(Body);
-        Rec.Body.CreateInStream(InS);
-        InS.Read(BodyText);
+        BodyText := TTUserManagement.GetPostBodyText(Rec);
     end;
 }

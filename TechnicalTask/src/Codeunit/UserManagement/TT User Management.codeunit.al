@@ -29,7 +29,7 @@ codeunit 1000000 "TT User Management"
         UserToken: JsonToken;
         JToken: JsonToken;
         JTokenUserId: Integer;
-        User: Record TTUser;
+        User: Record "TT User";
     begin
         UsersArray.ReadFrom(ResponseText);
         foreach UserToken in UsersArray do begin
@@ -45,12 +45,12 @@ codeunit 1000000 "TT User Management"
         end;
     end;
 
-    procedure CheckUserExists(UserId: Integer; var User: Record TTUser): Boolean
+    procedure CheckUserExists(UserId: Integer; var User: Record "TT User"): Boolean
     begin
         exit(User.Get(UserId));
     end;
 
-    procedure InsertUser(UserId: Integer; var User: Record TTUser): Boolean
+    procedure InsertUser(UserId: Integer; var User: Record "TT User"): Boolean
     begin
         User.Init();
         User.Validate(ID, UserId);
@@ -58,7 +58,7 @@ codeunit 1000000 "TT User Management"
         exit(true);
     end;
 
-    procedure MapUserData(UserToken: JsonToken; var User: Record TTUser)
+    procedure MapUserData(UserToken: JsonToken; var User: Record "TT User")
     var
         JToken: JsonToken;
     begin
@@ -188,6 +188,32 @@ codeunit 1000000 "TT User Management"
 
         if Body = '' then
             Error('Body cannot be empty.');
+    end;
+
+    procedure GetPostBodyText(Post: Record "TT Post"): Text
+    var
+        InS: InStream;
+        BodyText: Text;
+    begin
+        BodyText := '';
+
+        if not Post.Body.HasValue() then
+            exit(BodyText);
+
+        Post.CalcFields(Body);
+        Post.Body.CreateInStream(InS);
+        InS.Read(BodyText);
+        exit(BodyText);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"TT User", OnAfterDeleteEvent, '', false, false)]
+    local procedure OnAfterDeleteUser(var Rec: Record "TT User"; RunTrigger: Boolean)
+    var
+        Post: Record "TT Post";
+    begin
+        Post.SetRange(UserId, Rec.Id);
+        if not Post.IsEmpty() then
+            Post.DeleteAll();
     end;
 
 }

@@ -4,7 +4,7 @@ page 1000000 "TT User List"
     Caption = 'User List';
     ApplicationArea = All;
     UsageCategory = Lists;
-    SourceTable = TTUser;
+    SourceTable = "TT User";
     InsertAllowed = false;
     ModifyAllowed = false;
     LinksAllowed = false;

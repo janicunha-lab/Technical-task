@@ -21,7 +21,7 @@ codeunit 1000010 "TT User Management Test"
 
     local procedure InitializeSharedFixtures()
     var
-        User: Record TTUser;
+        User: Record "TT User";
         Post: Record "TT Post";
     begin
         User.Init();
@@ -61,7 +61,7 @@ codeunit 1000010 "TT User Management Test"
     procedure Test_CheckUserExists_Returns_True_When_UserExists()
     var
         TTUserManagement: Codeunit "TT User Management";
-        User: Record TTUser;
+        User: Record "TT User";
         UserId: Integer;
     begin
         Initialize();
@@ -73,7 +73,7 @@ codeunit 1000010 "TT User Management Test"
     procedure Test_CheckUserExists_Returns_False_When_UserDoesNotExist()
     var
         TTUserManagement: Codeunit "TT User Management";
-        User: Record TTUser;
+        User: Record "TT User";
         UserId: Integer;
     begin
         Initialize();
@@ -87,7 +87,7 @@ codeunit 1000010 "TT User Management Test"
     procedure Test_InsertUser_Successfully_Creates_New_User()
     var
         TTUserManagement: Codeunit "TT User Management";
-        User: Record TTUser;
+        User: Record "TT User";
         UserId: Integer;
         Result: Boolean;
     begin
@@ -107,7 +107,7 @@ codeunit 1000010 "TT User Management Test"
     procedure Test_MapUserData_Successfully_Maps_All_Fields()
     var
         TTUserManagement: Codeunit "TT User Management";
-        User: Record TTUser;
+        User: Record "TT User";
         UserToken: JsonToken;
         UserObject: JsonObject;
     begin
@@ -131,7 +131,7 @@ codeunit 1000010 "TT User Management Test"
     procedure Test_ParseAndStoreUsers_With_Valid_Json()
     var
         TTUserManagement: Codeunit "TT User Management";
-        User: Record TTUser;
+        User: Record "TT User";
         JsonText: Text;
     begin
         Initialize();
@@ -151,7 +151,7 @@ codeunit 1000010 "TT User Management Test"
     procedure Test_ParseAndStoreUsers_With_Existing_User()
     var
         TTUserManagement: Codeunit "TT User Management";
-        User: Record TTUser;
+        User: Record "TT User";
         JsonText: Text;
     begin
         Initialize();
