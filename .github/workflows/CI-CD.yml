@@ -21,7 +21,7 @@ on:
 
 jobs:
   CI-CD:
-    uses: microsoft/AL-Go-PTE/.github/workflows/RunPipeline.yml@preview
+    uses: microsoft/AL-Go/.github/workflows/RunPipeline.yml@main
     with:
       type: ci/cd
       environment: ${{ github.event.inputs.environment }}
