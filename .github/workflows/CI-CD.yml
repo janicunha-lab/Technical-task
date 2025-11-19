@@ -63,7 +63,11 @@ jobs:
           $country = $settings.country
           $artifact = Get-BCArtifactUrl -country $country -select Latest
           
+          # Share the workspace folder with the container
+          $additionalParameters = @("--volume `"${baseFolder}:c:\source`"")
+          
           Write-Host "Creating container: $containerName"
+          Write-Host "Workspace folder: $baseFolder"
           New-BcContainer `
             -accept_eula `
             -containerName $containerName `
@@ -73,16 +77,20 @@ jobs:
             -includeAL `
             -doNotExportObjectsToText `
             -shortcuts Desktop `
-            -updateHosts
+            -updateHosts `
+            -additionalParameters $additionalParameters
           
           try {
-            # Compile apps
+            # Compile apps - use the shared folder path inside container
             foreach ($appFolder in $settings.appFolders) {
               $appPath = Join-Path $baseFolder $appFolder
+              $containerAppPath = "c:\source\$appFolder"
               Write-Host "Compiling app: $appFolder"
+              Write-Host "Local path: $appPath"
+              Write-Host "Container path: $containerAppPath"
               Compile-AppInBcContainer `
                 -containerName $containerName `
-                -appProjectFolder $appPath `
+                -appProjectFolder $containerAppPath `
                 -credential $credential
             }
             
@@ -90,12 +98,15 @@ jobs:
             if (-not $settings.doNotRunTests -and $settings.testFolders.Count -gt 0) {
               foreach ($testFolder in $settings.testFolders) {
                 $testPath = Join-Path $baseFolder $testFolder
+                $containerTestPath = "c:\source\$testFolder"
                 Write-Host "Running tests: $testFolder"
+                Write-Host "Local path: $testPath"
+                Write-Host "Container path: $containerTestPath"
                 Run-TestsInBcContainer `
                   -containerName $containerName `
                   -credential $credential `
                   -testSuite "DEFAULT" `
-                  -appProjectFolder $testPath
+                  -appProjectFolder $containerTestPath
               }
             }
             
@@ -104,11 +115,12 @@ jobs:
               Write-Host "Running CodeCop analysis"
               foreach ($appFolder in $settings.appFolders) {
                 $appPath = Join-Path $baseFolder $appFolder
+                $containerAppPath = "c:\source\$appFolder"
                 $alcPath = Join-Path $appPath ".alpackages"
                 if (-not (Test-Path $alcPath)) {
                   New-Item -ItemType Directory -Path $alcPath -Force | Out-Null
                 }
-                Test-ALCompiler -containerName $containerName -appProjectFolder $appPath -credential $credential
+                Test-ALCompiler -containerName $containerName -appProjectFolder $containerAppPath -credential $credential
               }
             }
             
@@ -117,9 +129,10 @@ jobs:
               Write-Host "Running AppSourceCop analysis"
               foreach ($appFolder in $settings.appFolders) {
                 $appPath = Join-Path $baseFolder $appFolder
+                $containerAppPath = "c:\source\$appFolder"
                 $appSourceCopJson = Join-Path $appPath "AppSourceCop.json"
                 if (Test-Path $appSourceCopJson) {
-                  Test-AppSourceCop -containerName $containerName -appProjectFolder $appPath -credential $credential
+                  Test-AppSourceCop -containerName $containerName -appProjectFolder $containerAppPath -credential $credential
                 }
               }
             }
@@ -128,13 +141,20 @@ jobs:
             if (-not $settings.doNotPublishApps) {
               foreach ($appFolder in $settings.appFolders) {
                 $appPath = Join-Path $baseFolder $appFolder
+                $containerAppPath = "c:\source\$appFolder"
                 Write-Host "Packaging app: $appFolder"
-                $appFiles = Get-ChildItem -Path $appPath -Filter "*.app" -Recurse
+                # Look for .app files in the container path
+                $appFiles = Invoke-ScriptInBcContainer -containerName $containerName -scriptblock {
+                  param($path)
+                  Get-ChildItem -Path $path -Filter "*.app" -Recurse -ErrorAction SilentlyContinue
+                } -argumentList $containerAppPath
+                
                 if ($appFiles) {
                   foreach ($appFile in $appFiles) {
+                    $containerAppFile = Join-Path $containerAppPath $appFile.Name
                     Publish-BcContainerApp `
                       -containerName $containerName `
-                      -appFile $appFile.FullName `
+                      -appFile $containerAppFile `
                       -skipVerification `
                       -sync `
                       -install
