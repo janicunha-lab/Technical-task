@@ -1,6 +1,8 @@
 table 1000000 "TT User"
 {
     DataClassification = CustomerContent;
+    LookupPageId = "TT User Card";
+    DrillDownPageId = "TT User Card";
 
     fields
     {

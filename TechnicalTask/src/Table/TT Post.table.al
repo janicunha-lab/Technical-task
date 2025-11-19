@@ -16,6 +16,7 @@ table 1000001 "TT Post"
         {
             Caption = 'User Id';
             DataClassification = CustomerContent;
+            TableRelation = "TT User".Id;
 
         }
         field(3; Title; Text[100])
