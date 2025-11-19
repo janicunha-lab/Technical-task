@@ -43,13 +43,37 @@ jobs:
         env:
           ENVIRONMENT: ${{ github.event.inputs.environment }}
           DIRECTCOMMIT: ${{ github.event.inputs.directCommit }}
-          BcContainerHelperTelemetryConnectionString: ""
         run: |
           $ErrorActionPreference = "Stop"
           
-          # Disable telemetry
-          $env:BcContainerHelperTelemetryConnectionString = ""
+          # Create BcContainerHelper config directory and file with telemetry properties
+          $configPath = Join-Path $env:USERPROFILE ".BcContainerHelper"
+          $configFile = Join-Path $configPath "BcContainerHelper.config.json"
           
+          if (-not (Test-Path $configPath)) {
+            New-Item -ItemType Directory -Path $configPath -Force | Out-Null
+          }
+          
+          # Create or update config file with telemetry properties
+          $config = @{
+            MicrosoftTelemetryConnectionString = ""
+            PartnerTelemetryConnectionString = ""
+          }
+          
+          if (Test-Path $configFile) {
+            $existingConfig = Get-Content $configFile -Raw | ConvertFrom-Json
+            $existingConfig | Add-Member -MemberType NoteProperty -Name "MicrosoftTelemetryConnectionString" -Value "" -Force
+            $existingConfig | Add-Member -MemberType NoteProperty -Name "PartnerTelemetryConnectionString" -Value "" -Force
+            $config = $existingConfig
+          }
+          
+          $config | ConvertTo-Json -Depth 10 | Set-Content $configFile -Force
+          
+          # Also set environment variables
+          $env:MicrosoftTelemetryConnectionString = ""
+          $env:PartnerTelemetryConnectionString = ""
+          
+          # Now import the module
           Import-Module BcContainerHelper -DisableNameChecking
           
           $baseFolder = $env:GITHUB_WORKSPACE
@@ -59,9 +83,13 @@ jobs:
           # Ensure telemetry properties exist with empty strings
           if (-not $settingsJson.PSObject.Properties['MicrosoftTelemetryConnectionString']) {
             $settingsJson | Add-Member -MemberType NoteProperty -Name "MicrosoftTelemetryConnectionString" -Value ""
+          } else {
+            $settingsJson.MicrosoftTelemetryConnectionString = ""
           }
           if (-not $settingsJson.PSObject.Properties['PartnerTelemetryConnectionString']) {
             $settingsJson | Add-Member -MemberType NoteProperty -Name "PartnerTelemetryConnectionString" -Value ""
+          } else {
+            $settingsJson.PartnerTelemetryConnectionString = ""
           }
           
           $settings = $settingsJson
