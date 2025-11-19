@@ -13,21 +13,11 @@ on:
 
 jobs:
   CI:
-    name: CI
-    runs-on: ubuntu-latest
+    uses: microsoft/AL-Go-PTE/.github/workflows/RunPipeline.yml@preview
+    with:
+      type: ci
     permissions:
       contents: read
       pull-requests: write
       checks: write
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Run CI
-        uses: microsoft/AL-Go-Actions@preview
-        with:
-          type: ci
-          shell: pwsh
 
