@@ -1,172 +1,118 @@
 name: CI/CD
 
 on:
-  workflow_dispatch:
-    inputs:
-      environment:
-        description: 'Environment to deploy to'
-        required: true
-        type: choice
-        options:
-          - 'Production'
-          - 'Sandbox'
-      directCommit:
-        description: 'Direct commit (no PR)'
-        required: false
-        type: boolean
-        default: false
-  push:
-    branches:
-      - main
+workflow_dispatch:
+push:
+branches:
+- main
+- develop
+pull_request:
+branches:
+- main
+- develop
 
 jobs:
-  CI-CD:
-    name: CI/CD
-    runs-on: windows-latest
-    permissions:
-      contents: write
-      pull-requests: write
-      checks: write
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+CI:
+name: CI
+runs-on: windows-latest
+permissions:
+contents: read
+pull-requests: write
+checks: write
 
-      - name: Install BcContainerHelper
-        shell: pwsh
-        run: |
-          Install-Module BcContainerHelper -Force -Scope CurrentUser -AllowClobber
+```
+steps:
+  - name: Checkout repository
+    uses: actions/checkout@v4
+    with:
+      fetch-depth: 0
 
-      - name: Run CI/CD Pipeline
-        shell: pwsh
-        env:
-          ENVIRONMENT: ${{ github.event.inputs.environment }}
-          DIRECTCOMMIT: ${{ github.event.inputs.directCommit }}
-        run: |
-          $ErrorActionPreference = "Stop"
-          
-          # Import module (ignore telemetry warnings)
-          $ErrorActionPreference = "Continue"
-          Import-Module BcContainerHelper -DisableNameChecking -ErrorAction SilentlyContinue
-          $ErrorActionPreference = "Stop"
-          
-          # Read settings
-          $baseFolder = $env:GITHUB_WORKSPACE
-          $settingsFile = Join-Path $baseFolder ".AL-Go\settings.json"
-          $settings = Get-Content $settingsFile -Raw | ConvertFrom-Json
-          
-          # Create container
-          $containerName = "bcserver"
-          $password = ConvertTo-SecureString -String "P@ssw0rd" -AsPlainText -Force
-          $credential = New-Object System.Management.Automation.PSCredential ("admin", $password)
-          $country = $settings.country
-          $artifact = Get-BCArtifactUrl -country $country -select Latest
-          
-          # Share the workspace folder with the container
-          $additionalParameters = @("--volume `"${baseFolder}:c:\source`"")
-          
-          Write-Host "Creating container: $containerName"
-          Write-Host "Workspace folder: $baseFolder"
-          New-BcContainer `
-            -accept_eula `
-            -containerName $containerName `
-            -credential $credential `
-            -auth NavUserPassword `
-            -artifactUrl $artifact `
-            -includeAL `
-            -doNotExportObjectsToText `
-            -shortcuts Desktop `
-            -updateHosts `
-            -additionalParameters $additionalParameters
-          
-          try {
-            # Compile apps - use the shared folder path inside container
-            foreach ($appFolder in $settings.appFolders) {
-              $appPath = Join-Path $baseFolder $appFolder
-              $containerAppPath = "c:\source\$appFolder"
-              Write-Host "Compiling app: $appFolder"
-              Write-Host "Local path: $appPath"
-              Write-Host "Container path: $containerAppPath"
-              Compile-AppInBcContainer `
-                -containerName $containerName `
-                -appProjectFolder $containerAppPath `
-                -credential $credential
-            }
-            
-            # Run tests
-            if (-not $settings.doNotRunTests -and $settings.testFolders.Count -gt 0) {
-              foreach ($testFolder in $settings.testFolders) {
-                $testPath = Join-Path $baseFolder $testFolder
-                $containerTestPath = "c:\source\$testFolder"
-                Write-Host "Running tests: $testFolder"
-                Write-Host "Local path: $testPath"
-                Write-Host "Container path: $containerTestPath"
-                Run-TestsInBcContainer `
-                  -containerName $containerName `
-                  -credential $credential `
-                  -testSuite "DEFAULT" `
-                  -appProjectFolder $containerTestPath
-              }
-            }
-            
-            # Code analysis - CodeCop
-            if ($settings.enableCodeCop) {
-              Write-Host "Running CodeCop analysis"
-              foreach ($appFolder in $settings.appFolders) {
-                $appPath = Join-Path $baseFolder $appFolder
-                $containerAppPath = "c:\source\$appFolder"
-                $alcPath = Join-Path $appPath ".alpackages"
-                if (-not (Test-Path $alcPath)) {
-                  New-Item -ItemType Directory -Path $alcPath -Force | Out-Null
-                }
-                Test-ALCompiler -containerName $containerName -appProjectFolder $containerAppPath -credential $credential
-              }
-            }
-            
-            # Code analysis - AppSourceCop
-            if ($settings.enableAppSourceCop) {
-              Write-Host "Running AppSourceCop analysis"
-              foreach ($appFolder in $settings.appFolders) {
-                $appPath = Join-Path $baseFolder $appFolder
-                $containerAppPath = "c:\source\$appFolder"
-                $appSourceCopJson = Join-Path $appPath "AppSourceCop.json"
-                if (Test-Path $appSourceCopJson) {
-                  Test-AppSourceCop -containerName $containerName -appProjectFolder $containerAppPath -credential $credential
-                }
-              }
-            }
-            
-            # Package apps
-            if (-not $settings.doNotPublishApps) {
-              foreach ($appFolder in $settings.appFolders) {
-                $appPath = Join-Path $baseFolder $appFolder
-                $containerAppPath = "c:\source\$appFolder"
-                Write-Host "Packaging app: $appFolder"
-                # Look for .app files in the container path
-                $appFiles = Invoke-ScriptInBcContainer -containerName $containerName -scriptblock {
-                  param($path)
-                  Get-ChildItem -Path $path -Filter "*.app" -Recurse -ErrorAction SilentlyContinue
-                } -argumentList $containerAppPath
-                
-                if ($appFiles) {
-                  foreach ($appFile in $appFiles) {
-                    $containerAppFile = Join-Path $containerAppPath $appFile.Name
-                    Publish-BcContainerApp `
-                      -containerName $containerName `
-                      -appFile $containerAppFile `
-                      -skipVerification `
-                      -sync `
-                      -install
-                    Write-Host "App packaged: $($appFile.Name)"
-                  }
-                }
-              }
-            }
-            
-            Write-Host "CI/CD pipeline completed successfully"
-            Write-Host "Environment: $env:ENVIRONMENT"
-          } finally {
-            # Cleanup
-            Remove-BcContainer -containerName $containerName
+  - name: Install BcContainerHelper
+    shell: pwsh
+    run: |
+      Install-Module BcContainerHelper -Force -Scope CurrentUser -AllowClobber
+
+  - name: Run CI/CD Pipeline
+    shell: pwsh
+    run: |
+      $ErrorActionPreference = "Stop"
+
+      # Import module
+      Import-Module BcContainerHelper -DisableNameChecking -ErrorAction SilentlyContinue
+
+      # Load settings
+      $baseFolder = $env:GITHUB_WORKSPACE
+      $settingsFile = Join-Path $baseFolder ".AL-Go\settings.json"
+      $settings = Get-Content $settingsFile -Raw | ConvertFrom-Json
+
+      # Container config
+      $containerName = "bcserver"
+      $password = ConvertTo-SecureString -String "P@ssw0rd" -AsPlainText -Force
+      $credential = New-Object System.Management.Automation.PSCredential ("admin", $password)
+      $artifact = Get-BCArtifactUrl -country $settings.country -select Latest
+      $additionalParameters = @("--volume `"${baseFolder}:c:\source`"")
+
+      Write-Host "Creating container: $containerName"
+      New-BcContainer `
+        -accept_eula `
+        -containerName $containerName `
+        -credential $credential `
+        -auth NavUserPassword `
+        -artifactUrl $artifact `
+        -includeAL `
+        -doNotExportObjectsToText `
+        -shortcuts Desktop `
+        -updateHosts `
+        -includeTestToolkit:$true `
+        -includeTestLibrariesOnly:$true `
+        -additionalParameters $additionalParameters
+
+      try {
+        # Compile all apps
+        foreach ($appFolder in $settings.appFolders) {
+          $containerAppPath = "c:\source\$appFolder"
+          Write-Host "Compiling app: $appFolder"
+          Compile-AppInBcContainer -containerName $containerName -appProjectFolder $containerAppPath -credential $credential
+        }
+
+        # Run tests if enabled
+        if ($settings.tests.runTests -and $settings.testFolders.Count -gt 0) {
+          foreach ($testFolder in $settings.testFolders) {
+            $containerTestPath = "c:\source\$testFolder"
+            Write-Host "Running tests: $testFolder"
+            Run-TestsInBcContainer `
+              -containerName $containerName `
+              -credential $credential `
+              -testSuite "DEFAULT" `
+              -appProjectFolder $containerTestPath `
+              -testResultsFile $settings.tests.testResultsFile `
+              -testResultsFormat $settings.tests.testResultsFormat
           }
+        }
+
+        # Run code analysis if enabled
+        foreach ($appFolder in $settings.appFolders) {
+          $containerAppPath = "c:\source\$appFolder"
+          if ($settings.codeAnalysis.enableCodeCop) {
+            Write-Host "Running CodeCop analysis for $appFolder"
+            Test-ALCompiler -containerName $containerName -appProjectFolder $containerAppPath -credential $credential
+          }
+          if ($settings.codeAnalysis.enableAppSourceCop) {
+            $appSourceCopJson = Join-Path $baseFolder $appFolder "AppSourceCop.json"
+            if (Test-Path $appSourceCopJson) {
+              Write-Host "Running AppSourceCop analysis for $appFolder"
+              Test-AppSourceCop -containerName $containerName -appProjectFolder $containerAppPath -credential $credential
+            }
+          }
+          if ($settings.codeAnalysis.enableUICop) {
+            Write-Host "Running UICop analysis for $appFolder"
+            Test-UICop -containerName $containerName -appProjectFolder $containerAppPath -credential $credential
+          }
+        }
+
+        Write-Host "CI/CD pipeline completed successfully"
+      } finally {
+        # Cleanup container
+        Remove-BcContainer -containerName $containerName
+      }
+```
