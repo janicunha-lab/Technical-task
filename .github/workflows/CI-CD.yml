@@ -46,60 +46,20 @@ jobs:
         run: |
           $ErrorActionPreference = "Stop"
           
-          # Create BcContainerHelper config directory and file with telemetry properties
-          $configPath = Join-Path $env:USERPROFILE ".BcContainerHelper"
-          $configFile = Join-Path $configPath "BcContainerHelper.config.json"
+          # Import module (ignore telemetry warnings)
+          $ErrorActionPreference = "Continue"
+          Import-Module BcContainerHelper -DisableNameChecking -ErrorAction SilentlyContinue
+          $ErrorActionPreference = "Stop"
           
-          if (-not (Test-Path $configPath)) {
-            New-Item -ItemType Directory -Path $configPath -Force | Out-Null
-          }
-          
-          # Create or update config file with telemetry properties
-          $config = @{
-            MicrosoftTelemetryConnectionString = ""
-            PartnerTelemetryConnectionString = ""
-          }
-          
-          if (Test-Path $configFile) {
-            $existingConfig = Get-Content $configFile -Raw | ConvertFrom-Json
-            $existingConfig | Add-Member -MemberType NoteProperty -Name "MicrosoftTelemetryConnectionString" -Value "" -Force
-            $existingConfig | Add-Member -MemberType NoteProperty -Name "PartnerTelemetryConnectionString" -Value "" -Force
-            $config = $existingConfig
-          }
-          
-          $config | ConvertTo-Json -Depth 10 | Set-Content $configFile -Force
-          
-          # Also set environment variables
-          $env:MicrosoftTelemetryConnectionString = ""
-          $env:PartnerTelemetryConnectionString = ""
-          
-          # Now import the module
-          Import-Module BcContainerHelper -DisableNameChecking
-          
+          # Read settings
           $baseFolder = $env:GITHUB_WORKSPACE
           $settingsFile = Join-Path $baseFolder ".AL-Go\settings.json"
-          $settingsJson = Get-Content $settingsFile -Raw | ConvertFrom-Json
-          
-          # Ensure telemetry properties exist with empty strings
-          if (-not $settingsJson.PSObject.Properties['MicrosoftTelemetryConnectionString']) {
-            $settingsJson | Add-Member -MemberType NoteProperty -Name "MicrosoftTelemetryConnectionString" -Value ""
-          } else {
-            $settingsJson.MicrosoftTelemetryConnectionString = ""
-          }
-          if (-not $settingsJson.PSObject.Properties['PartnerTelemetryConnectionString']) {
-            $settingsJson | Add-Member -MemberType NoteProperty -Name "PartnerTelemetryConnectionString" -Value ""
-          } else {
-            $settingsJson.PartnerTelemetryConnectionString = ""
-          }
-          
-          $settings = $settingsJson
+          $settings = Get-Content $settingsFile -Raw | ConvertFrom-Json
           
           # Create container
           $containerName = "bcserver"
           $password = ConvertTo-SecureString -String "P@ssw0rd" -AsPlainText -Force
           $credential = New-Object System.Management.Automation.PSCredential ("admin", $password)
-          
-          # Get country and version
           $country = $settings.country
           $artifact = Get-BCArtifactUrl -country $country -select Latest
           
@@ -139,13 +99,29 @@ jobs:
               }
             }
             
-            # Code analysis
+            # Code analysis - CodeCop
             if ($settings.enableCodeCop) {
               Write-Host "Running CodeCop analysis"
+              foreach ($appFolder in $settings.appFolders) {
+                $appPath = Join-Path $baseFolder $appFolder
+                $alcPath = Join-Path $appPath ".alpackages"
+                if (-not (Test-Path $alcPath)) {
+                  New-Item -ItemType Directory -Path $alcPath -Force | Out-Null
+                }
+                Test-ALCompiler -containerName $containerName -appProjectFolder $appPath -credential $credential
+              }
             }
             
+            # Code analysis - AppSourceCop
             if ($settings.enableAppSourceCop) {
               Write-Host "Running AppSourceCop analysis"
+              foreach ($appFolder in $settings.appFolders) {
+                $appPath = Join-Path $baseFolder $appFolder
+                $appSourceCopJson = Join-Path $appPath "AppSourceCop.json"
+                if (Test-Path $appSourceCopJson) {
+                  Test-AppSourceCop -containerName $containerName -appProjectFolder $appPath -credential $credential
+                }
+              }
             }
             
             # Package apps
@@ -153,14 +129,18 @@ jobs:
               foreach ($appFolder in $settings.appFolders) {
                 $appPath = Join-Path $baseFolder $appFolder
                 Write-Host "Packaging app: $appFolder"
-                $appFile = Publish-BcContainerApp `
-                  -containerName $containerName `
-                  -appFile (Join-Path $appPath "*.app") `
-                  -skipVerification `
-                  -sync `
-                  -install
-                
-                Write-Host "App packaged: $appFile"
+                $appFiles = Get-ChildItem -Path $appPath -Filter "*.app" -Recurse
+                if ($appFiles) {
+                  foreach ($appFile in $appFiles) {
+                    Publish-BcContainerApp `
+                      -containerName $containerName `
+                      -appFile $appFile.FullName `
+                      -skipVerification `
+                      -sync `
+                      -install
+                    Write-Host "App packaged: $($appFile.Name)"
+                  }
+                }
               }
             }
             
