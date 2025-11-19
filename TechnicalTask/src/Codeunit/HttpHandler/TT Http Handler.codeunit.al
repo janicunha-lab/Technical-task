@@ -10,9 +10,8 @@ codeunit 1000001 "TT Http Handler" implements "TT IHttpClientController"
     procedure Get(Url: Text; Controller: Interface "TT IHttpClientController"): Text
     var
         HttpResponse: HttpResponseMessage;
-        HttpStatusCode: Integer;
-        ResponseText: Text;
         HttpClientError: Label 'Http request to %1 failed.';
+        ResponseText: Text;
     begin
         if not Controller.Get(Url, HttpResponse) then
             Error(HttpClientError, Url);
@@ -31,12 +30,12 @@ codeunit 1000001 "TT Http Handler" implements "TT IHttpClientController"
 
     procedure Post(Url: Text; JsonText: Text; Controller: Interface "TT IHttpClientController"): Text
     var
-        Request: HttpRequestMessage;
-        Response: HttpResponseMessage;
         Content: HttpContent;
         Headers: HttpHeaders;
-        ResponseText: Text;
+        Request: HttpRequestMessage;
+        Response: HttpResponseMessage;
         HttpClientError: Label 'Http request to %1 failed.';
+        ResponseText: Text;
     begin
         Request.Method('POST');
         Request.SetRequestUri(Url);

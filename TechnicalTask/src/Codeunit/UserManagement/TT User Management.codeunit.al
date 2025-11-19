@@ -5,7 +5,6 @@ codeunit 1000000 "TT User Management"
     procedure GetUsersInfo()
     var
         UserList: Text;
-        Notification: Notification;
     begin
         if not GetUserList('https://jsonplaceholder.typicode.com/users', UserList) then
             exit;
@@ -25,11 +24,11 @@ codeunit 1000000 "TT User Management"
 
     procedure ParseAndStoreUsers(ResponseText: Text)
     var
-        UsersArray: JsonArray;
-        UserToken: JsonToken;
-        JToken: JsonToken;
-        JTokenUserId: Integer;
         User: Record "TT User";
+        JTokenUserId: Integer;
+        UsersArray: JsonArray;
+        JToken: JsonToken;
+        UserToken: JsonToken;
     begin
         UsersArray.ReadFrom(ResponseText);
         foreach UserToken in UsersArray do begin
@@ -94,11 +93,11 @@ codeunit 1000000 "TT User Management"
 
     procedure ParseAndStoreUserPosts(ResponseText: Text)
     var
-        PostsArray: JsonArray;
-        PostToken: JsonToken;
-        JToken: JsonToken;
-        JTokenPostID: Integer;
         Post: Record "TT Post";
+        JTokenPostID: Integer;
+        PostsArray: JsonArray;
+        JToken: JsonToken;
+        PostToken: JsonToken;
     begin
         PostsArray.ReadFrom(ResponseText);
         foreach PostToken in PostsArray do begin
@@ -159,9 +158,9 @@ codeunit 1000000 "TT User Management"
     var
         HttpHandler: Codeunit "TT HTTP Handler";
         Json: JsonObject;
+        SuccessMsg: Label 'New entry created successfully!\ %1';
         JsonText: Text;
         ResultText: Text;
-        SuccessMsg: Label 'New entry created successfully!\ %1';
     begin
         CheckEmptyFields(UserId, Title, Body);
 

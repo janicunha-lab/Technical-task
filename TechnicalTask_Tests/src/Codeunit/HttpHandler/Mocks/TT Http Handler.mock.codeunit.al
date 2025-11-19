@@ -21,10 +21,6 @@ codeunit 1000012 "TT Http Handler Mock" implements "TT IHttpClientController"
     end;
 
     procedure Get(Url: Text; var Response: HttpResponseMessage): Boolean
-    var
-        BodyInStream: InStream;
-        TempBlob: Codeunit "Temp Blob";
-        FullHttpResponseText: Text;
     begin
         if not ShouldSucceed then
             exit(false);
@@ -34,10 +30,6 @@ codeunit 1000012 "TT Http Handler Mock" implements "TT IHttpClientController"
     end;
 
     procedure Send(Request: HttpRequestMessage; var Response: HttpResponseMessage): Boolean
-    var
-        BodyInStream: InStream;
-        TempBlob: Codeunit "Temp Blob";
-        FullHttpResponseText: Text;
     begin
         if not ShouldSucceed then
             exit(false);

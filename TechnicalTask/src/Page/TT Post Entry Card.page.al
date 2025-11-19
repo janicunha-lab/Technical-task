@@ -48,6 +48,6 @@ page 1000003 "TT Post Entry Card"
 
     var
         UserId: Integer;
-        Title: Text[100];
         Body: Text;
+        Title: Text[100];
 }

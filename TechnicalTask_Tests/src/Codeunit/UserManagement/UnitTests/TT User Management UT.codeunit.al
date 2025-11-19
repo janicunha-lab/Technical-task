@@ -21,8 +21,8 @@ codeunit 1000010 "TT User Management Test"
 
     local procedure InitializeSharedFixtures()
     var
-        User: Record "TT User";
         Post: Record "TT Post";
+        User: Record "TT User";
     begin
         User.Init();
         User.Id := 123456789;
@@ -60,8 +60,8 @@ codeunit 1000010 "TT User Management Test"
     [Test]
     procedure Test_CheckUserExists_Returns_True_When_UserExists()
     var
-        TTUserManagement: Codeunit "TT User Management";
         User: Record "TT User";
+        TTUserManagement: Codeunit "TT User Management";
         UserId: Integer;
     begin
         Initialize();
@@ -72,8 +72,8 @@ codeunit 1000010 "TT User Management Test"
     [Test]
     procedure Test_CheckUserExists_Returns_False_When_UserDoesNotExist()
     var
-        TTUserManagement: Codeunit "TT User Management";
         User: Record "TT User";
+        TTUserManagement: Codeunit "TT User Management";
         UserId: Integer;
     begin
         Initialize();
@@ -86,10 +86,10 @@ codeunit 1000010 "TT User Management Test"
     [Test]
     procedure Test_InsertUser_Successfully_Creates_New_User()
     var
-        TTUserManagement: Codeunit "TT User Management";
         User: Record "TT User";
-        UserId: Integer;
+        TTUserManagement: Codeunit "TT User Management";
         Result: Boolean;
+        UserId: Integer;
     begin
         Initialize();
         UserId := 999888777;
@@ -106,10 +106,10 @@ codeunit 1000010 "TT User Management Test"
     [Test]
     procedure Test_MapUserData_Successfully_Maps_All_Fields()
     var
-        TTUserManagement: Codeunit "TT User Management";
         User: Record "TT User";
-        UserToken: JsonToken;
+        TTUserManagement: Codeunit "TT User Management";
         UserObject: JsonObject;
+        UserToken: JsonToken;
     begin
         Initialize();
         User.Id := 123456789;
@@ -130,8 +130,8 @@ codeunit 1000010 "TT User Management Test"
     [Test]
     procedure Test_ParseAndStoreUsers_With_Valid_Json()
     var
-        TTUserManagement: Codeunit "TT User Management";
         User: Record "TT User";
+        TTUserManagement: Codeunit "TT User Management";
         JsonText: Text;
     begin
         Initialize();
@@ -150,8 +150,8 @@ codeunit 1000010 "TT User Management Test"
     [Test]
     procedure Test_ParseAndStoreUsers_With_Existing_User()
     var
-        TTUserManagement: Codeunit "TT User Management";
         User: Record "TT User";
+        TTUserManagement: Codeunit "TT User Management";
         JsonText: Text;
     begin
         Initialize();
@@ -169,8 +169,8 @@ codeunit 1000010 "TT User Management Test"
     [Test]
     procedure Test_CheckPostExists_Returns_True_When_PostExists()
     var
-        TTUserManagement: Codeunit "TT User Management";
         Post: Record "TT Post";
+        TTUserManagement: Codeunit "TT User Management";
         PostID: Integer;
     begin
         Initialize();
@@ -181,8 +181,8 @@ codeunit 1000010 "TT User Management Test"
     [Test]
     procedure Test_CheckPostExists_Returns_False_When_PostDoesNotExist()
     var
-        TTUserManagement: Codeunit "TT User Management";
         Post: Record "TT Post";
+        TTUserManagement: Codeunit "TT User Management";
         PostID: Integer;
     begin
         Initialize();
@@ -195,10 +195,10 @@ codeunit 1000010 "TT User Management Test"
     [Test]
     procedure Test_InsertPost_Successfully_Creates_New_Post()
     var
-        TTUserManagement: Codeunit "TT User Management";
         Post: Record "TT Post";
-        PostID: Integer;
+        TTUserManagement: Codeunit "TT User Management";
         Result: Boolean;
+        PostID: Integer;
     begin
         Initialize();
         PostID := 999888;
