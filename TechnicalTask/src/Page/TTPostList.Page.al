@@ -15,10 +15,10 @@ page 1000001 "TT Post List"
         {
             repeater(GroupName)
             {
-                field(ID; Rec.ID)
+                field(ID; Rec.Id)
                 {
                 }
-                field(UserID; Rec.UserID)
+                field(UserId; Rec.UserId)
                 {
                 }
                 field(Title; Rec.Title)

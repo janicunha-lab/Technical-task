@@ -11,7 +11,7 @@ page 1000003 "TT Post Entry Card"
             group(PostEntryGroup)
             {
                 ShowCaption = false;
-                field(UserID; UserID)
+                field(UserId; UserId)
                 {
                 }
                 field(Title; Title)
@@ -40,14 +40,14 @@ page 1000003 "TT Post Entry Card"
                 var
                     TTUserManagement: Codeunit "TT User Management";
                 begin
-                    TTUserManagement.PostNewEntry(UserID, Title, Body);
+                    TTUserManagement.PostNewEntry(UserId, Title, Body);
                 end;
             }
         }
     }
 
     var
-        UserID: Integer;
+        UserId: Integer;
         Title: Text[100];
         Body: Text;
 }

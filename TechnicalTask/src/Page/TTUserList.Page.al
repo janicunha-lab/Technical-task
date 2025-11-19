@@ -14,7 +14,7 @@ page 1000000 TTUserList
         {
             repeater(GroupName)
             {
-                field(ID; Rec.ID)
+                field(ID; Rec.Id)
                 {
                 }
                 field(Name; Rec.Name)

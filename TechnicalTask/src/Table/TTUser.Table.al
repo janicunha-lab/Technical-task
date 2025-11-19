@@ -4,9 +4,9 @@ table 1000000 TTUser
 
     fields
     {
-        field(1; ID; Integer)
+        field(1; Id; Integer)
         {
-            Caption = 'ID';
+            Caption = 'Id';
             DataClassification = CustomerContent;
 
         }
@@ -32,7 +32,7 @@ table 1000000 TTUser
         {
             Caption = 'Posts';
             FieldClass = FlowField;
-            CalcFormula = Count("TT Post" where(UserID = FIELD(ID)));
+            CalcFormula = Count("TT Post" where(UserId = FIELD(ID)));
             Editable = false;
 
         }
@@ -50,7 +50,7 @@ table 1000000 TTUser
     var
         Post: Record "TT Post";
     begin
-        Post.SetRange(UserID, Rec.ID);
+        Post.SetRange(UserId, Rec.Id);
         if not Post.IsEmpty() then
             Post.DeleteAll();
     end;

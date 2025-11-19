@@ -26,7 +26,7 @@ codeunit 1000000 "TT User Management"
         UsersArray: JsonArray;
         UserToken: JsonToken;
         JToken: JsonToken;
-        JTokenUserID: Integer;
+        JTokenUserId: Integer;
         User: Record TTUser;
     begin
         UsersArray.ReadFrom(ResponseText);
@@ -34,24 +34,24 @@ codeunit 1000000 "TT User Management"
 
             if not UserToken.AsObject().Get('id', JToken) then
                 continue;
-            JTokenUserID := JToken.AsValue().AsInteger();
+            JTokenUserId := JToken.AsValue().AsInteger();
 
-            if not CheckUserExists(JTokenUserID, User) then
-                InsertUser(JTokenUserID, User);
+            if not CheckUserExists(JTokenUserId, User) then
+                InsertUser(JTokenUserId, User);
 
             MapUserData(UserToken, User);
         end;
     end;
 
-    procedure CheckUserExists(UserID: Integer; var User: Record TTUser): Boolean
+    procedure CheckUserExists(UserId: Integer; var User: Record TTUser): Boolean
     begin
-        exit(User.Get(UserID));
+        exit(User.Get(UserId));
     end;
 
-    procedure InsertUser(UserID: Integer; var User: Record TTUser): Boolean
+    procedure InsertUser(UserId: Integer; var User: Record TTUser): Boolean
     begin
         User.Init();
-        User.Validate(ID, UserID);
+        User.Validate(ID, UserId);
         User.Insert(true);
         exit(true);
     end;
@@ -130,7 +130,7 @@ codeunit 1000000 "TT User Management"
         JToken: JsonToken;
         OutS: OutStream;
     begin
-        if PostToken.AsObject().Get('userId', JToken) then
+        if PostToken.AsObject().Get('UserId', JToken) then
             Post.Validate(UserId, JToken.AsValue().AsInteger());
 
         if PostToken.AsObject().Get('title', JToken) then
@@ -153,7 +153,7 @@ codeunit 1000000 "TT User Management"
         Notification.Send();
     end;
 
-    procedure PostNewEntry(UserID: Integer; Title: Text; Body: Text): Text
+    procedure PostNewEntry(UserId: Integer; Title: Text; Body: Text): Boolean
     var
         HttpHandler: Codeunit "TT HTTP Handler";
         Json: JsonObject;
@@ -163,12 +163,15 @@ codeunit 1000000 "TT User Management"
     begin
         Json.Add('title', Title);
         Json.Add('body', Body);
-        Json.Add('userId', UserID);
+        Json.Add('UserId', UserId);
         Json.WriteTo(JsonText);
 
         ResultText := HttpHandler.Post('https://jsonplaceholder.typicode.com/posts', JsonText);
-        if ResultText <> '' then
-            Message(SuccessMsg, ResultText);
+        if ResultText = '' then
+            exit(false);
+
+        Message(SuccessMsg, ResultText);
+        exit(true);
     end;
 
 }

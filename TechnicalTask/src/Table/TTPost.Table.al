@@ -6,15 +6,15 @@ table 1000001 "TT Post"
 
     fields
     {
-        field(1; ID; Integer)
+        field(1; Id; Integer)
         {
-            Caption = 'ID';
+            Caption = 'Id';
             DataClassification = CustomerContent;
 
         }
-        field(2; UserID; Integer)
+        field(2; UserId; Integer)
         {
-            Caption = 'User ID';
+            Caption = 'User Id';
             DataClassification = CustomerContent;
 
         }
