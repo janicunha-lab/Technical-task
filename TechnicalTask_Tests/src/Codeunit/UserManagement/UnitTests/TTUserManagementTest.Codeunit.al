@@ -66,7 +66,7 @@ codeunit 1000010 "TT User Management Test"
         UserId: Integer;
     begin
         Initialize();
-        User.Id := 123456789;
+        UserId := 123456789;
         Assert.IsTrue(TTUserManagement.CheckUserExists(UserId, User), 'CheckUserExists should return true for existing user');
     end;
 
@@ -78,7 +78,7 @@ codeunit 1000010 "TT User Management Test"
         UserId: Integer;
     begin
         Initialize();
-        User.Id := 1234567890;
+        UserId := 1234567890;
         Assert.IsFalse(TTUserManagement.CheckUserExists(UserId, User), 'CheckUserExists should return false for non-existing user');
     end;
     #endregion
@@ -93,7 +93,7 @@ codeunit 1000010 "TT User Management Test"
         Result: Boolean;
     begin
         Initialize();
-        User.Id := 999888777;
+        UserId := 999888777;
 
         Result := TTUserManagement.InsertUser(UserId, User);
 
@@ -232,6 +232,7 @@ codeunit 1000010 "TT User Management Test"
         TTUserManagement.MapPostData(PostToken, Post);
 
         Post.Get(12345);
+        Post.CalcFields(Body);
         Assert.AreEqual(123, Post.UserId, 'UserId should be mapped correctly');
         Assert.AreEqual('Test Post Title', Post.Title, 'Title should be mapped correctly');
         Post.Body.CreateInStream(BodyInStream);
@@ -254,10 +255,10 @@ codeunit 1000010 "TT User Management Test"
         TTUserManagement.ParseAndStoreUserPosts(JsonText);
 
         Assert.IsTrue(Post.Get(1111), 'First post should be created');
-        Assert.AreEqual(1, Post.UserId, 'First post UserId should be correct');
+        Assert.AreEqual(1111, Post.UserId, 'First post UserId should be correct');
         Assert.AreEqual('Test Title 1', Post.Title, 'First post title should be correct');
         Assert.IsTrue(Post.Get(2222), 'Second post should be created');
-        Assert.AreEqual(2, Post.UserId, 'Second post UserId should be correct');
+        Assert.AreEqual(2222, Post.UserId, 'Second post UserId should be correct');
         Assert.AreEqual('Test Title 2', Post.Title, 'Second post title should be correct');
     end;
     #endregion
