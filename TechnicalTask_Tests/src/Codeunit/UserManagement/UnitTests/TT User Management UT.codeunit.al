@@ -2,7 +2,6 @@ codeunit 1000010 "TT User Management Test"
 {
     SubType = Test;
     TestPermissions = Disabled;
-    EventSubscriberInstance = Manual;
 
     var
         Assert: Codeunit "Assert";
@@ -207,6 +206,35 @@ codeunit 1000010 "TT User Management Test"
         Result := TTUserManagement.InsertPost(PostID, Post);
 
         Assert.IsTrue(Result, 'InsertPost should return true for successful insertion');
+    end;
+    #endregion
+
+    #region PostNewEntry Tests
+    [Test]
+    procedure Test_PostNewEntry_With_Negative_UserID_Returns_Error()
+    var
+        TTUserManagement: Codeunit "TT User Management";
+    begin
+        Initialize();
+        asserterror TTUserManagement.PostNewEntry(-1, 'Sample Title', 'Sample Body');
+    end;
+
+    [Test]
+    procedure Test_PostNewEntry_With_Empty_Title_Returns_Error()
+    var
+        TTUserManagement: Codeunit "TT User Management";
+    begin
+        Initialize();
+        asserterror TTUserManagement.PostNewEntry(1, '', 'Sample Body');
+    end;
+
+    [Test]
+    procedure Test_PostNewEntry_With_Empty_Body_Returns_Error()
+    var
+        TTUserManagement: Codeunit "TT User Management";
+    begin
+        Initialize();
+        asserterror TTUserManagement.PostNewEntry(1, 'Sample Title', '');
     end;
     #endregion
 }

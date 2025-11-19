@@ -1,5 +1,7 @@
 codeunit 1000000 "TT User Management"
 {
+    Access = Internal;
+
     procedure GetUsersInfo()
     var
         UserList: Text;
@@ -161,6 +163,8 @@ codeunit 1000000 "TT User Management"
         ResultText: Text;
         SuccessMsg: Label 'New entry created successfully!\ %1';
     begin
+        CheckEmptyFields(UserId, Title, Body);
+
         Json.Add('title', Title);
         Json.Add('body', Body);
         Json.Add('UserId', UserId);
@@ -172,6 +176,18 @@ codeunit 1000000 "TT User Management"
 
         Message(SuccessMsg, ResultText);
         exit(true);
+    end;
+
+    procedure CheckEmptyFields(UserId: Integer; Title: Text; Body: Text)
+    begin
+        if UserId <= 0 then
+            Error('User ID must be a positive integer.');
+
+        if Title = '' then
+            Error('Title cannot be empty.');
+
+        if Body = '' then
+            Error('Body cannot be empty.');
     end;
 
 }

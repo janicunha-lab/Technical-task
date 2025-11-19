@@ -1,28 +1,24 @@
-codeunit 1000001 "TT Http Handler" implements "TT IHttpHandlerController"
+codeunit 1000001 "TT Http Handler" implements "TT IHttpClientController"
 {
     Access = Internal;
-    trigger OnRun()
-    begin
-    end;
 
     procedure Get(Url: Text): Text
     begin
         exit(Get(Url, this));
     end;
 
-    procedure Get(Url: Text; Controller: Interface "TT IHttpHandlerController"): Text
+    procedure Get(Url: Text; Controller: Interface "TT IHttpClientController"): Text
     var
-        Client: HttpClient;
         HttpResponse: HttpResponseMessage;
         HttpStatusCode: Integer;
         ResponseText: Text;
         HttpClientError: Label 'Http request to %1 failed.';
     begin
-        if not Client.Get(Url, HttpResponse) then
+        if not Controller.Get(Url, HttpResponse) then
             Error(HttpClientError, Url);
 
         if not HttpResponse.IsSuccessStatusCode() then
-            Controller.HandleHttpError(HttpResponse.HttpStatusCode());
+            HandleHttpError(HttpResponse.HttpStatusCode());
 
         HttpResponse.Content().ReadAs(ResponseText);
         exit(ResponseText);
@@ -33,9 +29,8 @@ codeunit 1000001 "TT Http Handler" implements "TT IHttpHandlerController"
         exit(Post(Url, JsonText, this));
     end;
 
-    procedure Post(Url: Text; JsonText: Text; Controller: Interface "TT IHttpHandlerController"): Text
+    procedure Post(Url: Text; JsonText: Text; Controller: Interface "TT IHttpClientController"): Text
     var
-        Client: HttpClient;
         Request: HttpRequestMessage;
         Response: HttpResponseMessage;
         Content: HttpContent;
@@ -51,11 +46,11 @@ codeunit 1000001 "TT Http Handler" implements "TT IHttpHandlerController"
         Headers.Add('Content-Type', 'application/json; charset=UTF-8');
         Request.Content(Content);
 
-        if not Client.Send(Request, Response) then
+        if not Controller.Send(Request, Response) then
             Error(HttpClientError, Url);
 
         if not Response.IsSuccessStatusCode() then
-            Controller.HandleHttpError(Response.HttpStatusCode());
+            HandleHttpError(Response.HttpStatusCode());
 
         Response.Content().ReadAs(ResponseText);
         exit(ResponseText);
@@ -95,4 +90,17 @@ codeunit 1000001 "TT Http Handler" implements "TT IHttpHandlerController"
         Error(ErrorMessage);
     end;
 
+    procedure Get(Path: Text; var Response: HttpResponseMessage): Boolean
+    var
+        Client: HttpClient;
+    begin
+        exit(Client.Get(Path, Response));
+    end;
+
+    procedure Send(Request: HttpRequestMessage; var Response: HttpResponseMessage): Boolean
+    var
+        Client: HttpClient;
+    begin
+        exit(Client.Send(Request, Response));
+    end;
 }

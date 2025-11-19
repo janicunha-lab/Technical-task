@@ -1,6 +1,7 @@
-page 1000000 TTUserList
+page 1000000 "TT User List"
 {
     PageType = List;
+    Caption = 'User List';
     ApplicationArea = All;
     UsageCategory = Lists;
     SourceTable = TTUser;

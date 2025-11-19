@@ -1,6 +1,7 @@
 page 1000001 "TT Post List"
 {
     PageType = List;
+    Caption = 'Post List';
     ApplicationArea = All;
     UsageCategory = Lists;
     SourceTable = "TT Post";

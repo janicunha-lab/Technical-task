@@ -8,7 +8,6 @@ table 1000000 TTUser
         {
             Caption = 'Id';
             DataClassification = CustomerContent;
-
         }
         field(2; Name; Text[100])
         {
