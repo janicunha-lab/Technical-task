@@ -13,11 +13,55 @@ on:
 
 jobs:
   CI:
-    uses: microsoft/AL-Go/.github/workflows/RunPipeline.yml@main
-    with:
-      type: ci
+    name: CI
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: write
       checks: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
+      - name: Install BcContainerHelper
+        shell: pwsh
+        run: |
+          Install-Module BcContainerHelper -Force -Scope CurrentUser -AllowClobber
+
+      - name: Download AL-Go Helper Scripts
+        shell: pwsh
+        run: |
+          $baseFolder = $env:GITHUB_WORKSPACE
+          $alGoFolder = Join-Path $baseFolder ".github"
+          New-Item -ItemType Directory -Force -Path $alGoFolder | Out-Null
+          
+          # Download AL-Go helper script
+          $helperScript = Join-Path $alGoFolder "AL-Go-Helpers.ps1"
+          Invoke-WebRequest -Uri "https://raw.githubusercontent.com/microsoft/AL-Go/main/.github/AL-Go-Helpers.ps1" -OutFile $helperScript
+
+      - name: Run AL-Go CI
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $baseFolder = $env:GITHUB_WORKSPACE
+          
+          # Import BcContainerHelper
+          Import-Module BcContainerHelper -DisableNameChecking
+          
+          # Source AL-Go helper script
+          $helperScript = Join-Path $baseFolder ".github\AL-Go-Helpers.ps1"
+          if (Test-Path $helperScript) {
+            . $helperScript
+          }
+          
+          # Read settings
+          $settings = Get-Content (Join-Path $baseFolder ".AL-Go\settings.json") | ConvertFrom-Json
+          
+          # Run pipeline
+          if (Get-Command Run-AlPipeline -ErrorAction SilentlyContinue) {
+            Run-AlPipeline -baseFolder $baseFolder -type "ci" -settings $settings
+          } else {
+            Write-Error "Run-AlPipeline function not found. Please check AL-Go helper script."
+          }
