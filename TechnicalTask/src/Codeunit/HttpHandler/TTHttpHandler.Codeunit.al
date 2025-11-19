@@ -1,11 +1,16 @@
-codeunit 1000001 "TT Http Handler"
+codeunit 1000001 "TT Http Handler" implements "TT IHttpHandlerController"
 {
-
+    Access = Internal;
     trigger OnRun()
     begin
     end;
 
-    internal procedure Get(Url: Text): Text
+    procedure Get(Url: Text): Text
+    begin
+        exit(Get(Url, this));
+    end;
+
+    procedure Get(Url: Text; Controller: Interface "TT IHttpHandlerController"): Text
     var
         Client: HttpClient;
         HttpResponse: HttpResponseMessage;
@@ -16,16 +21,19 @@ codeunit 1000001 "TT Http Handler"
         if not Client.Get(Url, HttpResponse) then
             Error(HttpClientError, Url);
 
-        if not HttpResponse.IsSuccessStatusCode() then begin
-            HandleHttpError(HttpResponse.HttpStatusCode());
-            exit('');
-        end;
+        if not HttpResponse.IsSuccessStatusCode() then
+            Controller.HandleHttpError(HttpResponse.HttpStatusCode());
 
         HttpResponse.Content().ReadAs(ResponseText);
         exit(ResponseText);
     end;
 
-    internal procedure Post(Url: Text; JsonText: Text): Text
+    procedure Post(Url: Text; JsonText: Text): Text
+    begin
+        exit(Post(Url, JsonText, this));
+    end;
+
+    procedure Post(Url: Text; JsonText: Text; Controller: Interface "TT IHttpHandlerController"): Text
     var
         Client: HttpClient;
         Request: HttpRequestMessage;
@@ -46,16 +54,14 @@ codeunit 1000001 "TT Http Handler"
         if not Client.Send(Request, Response) then
             Error(HttpClientError, Url);
 
-        if not Response.IsSuccessStatusCode() then begin
-            HandleHttpError(Response.HttpStatusCode());
-            exit('');
-        end;
+        if not Response.IsSuccessStatusCode() then
+            Controller.HandleHttpError(Response.HttpStatusCode());
 
         Response.Content().ReadAs(ResponseText);
         exit(ResponseText);
     end;
 
-    local procedure HandleHttpError(HttpStatusCode: Integer)
+    procedure HandleHttpError(HttpStatusCode: Integer)
     var
         ErrorMessage: Text;
     begin
@@ -88,7 +94,5 @@ codeunit 1000001 "TT Http Handler"
 
         Error(ErrorMessage);
     end;
-
-
 
 }

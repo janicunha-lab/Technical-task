@@ -12,6 +12,13 @@
   "url": "https://www.yourcompany.com",
   "logo": "logo.png",
   "dependencies": [],
+  "internalsVisibleTo": [
+    {
+      "id": "6a9fc194-7f88-496f-a5f6-7325bb427ee4",
+      "name": "TechnicalTask_Tests",
+      "publisher": "Default Publisher"
+    }
+  ],
   "screenshots": [
     "screenshot1.png",
     "screenshot2.png"
